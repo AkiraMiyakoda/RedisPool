@@ -1,7 +1,7 @@
 use crate::{connection::RedisPoolConnection, errors::RedisPoolError, factory::ConnectionFactory};
 use crossbeam_queue::ArrayQueue;
 use redis::{aio::MultiplexedConnection, Client, RedisResult};
-use std::{ops::Deref, sync::Arc};
+use std::{fmt::Debug, ops::Deref, sync::Arc};
 use tokio::sync::Semaphore;
 
 pub const DEFAULT_POOL_SIZE: usize = 16;
@@ -85,6 +85,16 @@ where
             queue: self.queue.clone(),
             sem: self.sem.clone(),
         }
+    }
+}
+
+impl<F, C> Debug for RedisPool<F, C>
+where
+    F: ConnectionFactory<C> + Send + Sync + Clone,
+    C: redis::aio::ConnectionLike + Send,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(std::any::type_name::<RedisPool<F, C>>())
     }
 }
 
