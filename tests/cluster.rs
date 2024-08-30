@@ -15,12 +15,12 @@ pub async fn test_simple_get_set_series() -> anyhow::Result<()> {
     let pool = RedisPool::from(cluster.client());
 
     for i in 0..1000 {
-        let mut con = pool.aquire().await?;
+        let mut con = pool.acquire().await?;
         let (value,) = redis::Pipeline::with_capacity(2)
             .set(i, i)
             .ignore()
             .get(i)
-            .query_async::<_, (i64,)>(&mut con)
+            .query_async::<(i64,)>(&mut con)
             .await?;
         assert_eq!(i, value);
     }
@@ -53,7 +53,7 @@ pub async fn test_simple_get_set_parrallel() -> anyhow::Result<()> {
 
 async fn get_set_byte_array(i: usize, pool: &ClusterRedisPool) -> anyhow::Result<Vec<u8>> {
     let mut con = pool
-        .aquire()
+        .acquire()
         .await
         .context("Failed to establish connection")?;
 
@@ -61,7 +61,7 @@ async fn get_set_byte_array(i: usize, pool: &ClusterRedisPool) -> anyhow::Result
         .set(i, &DATA[..])
         .ignore()
         .get(i)
-        .query_async::<_, (Vec<u8>,)>(&mut con)
+        .query_async::<(Vec<u8>,)>(&mut con)
         .await
         .context("Failed to set/get from redis")?;
 
